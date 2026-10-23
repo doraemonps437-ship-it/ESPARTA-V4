@@ -1,21 +1,27 @@
 name: build
-on: [push]
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SDK 0.5.4 prebuilt
+      - name: Install SDK 0.5.4
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 lld-18 libicu-dev python3
+          sudo apt-get install -y libicu-dev python3 python3-pil
           wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/OpenOrbis-PS4-Toolchain-0.5.4.tar.gz -O /tmp/toolchain.tar.gz
           sudo mkdir -p /usr/local/orbis
           sudo tar xzf /tmp/toolchain.tar.gz -C /usr/local/orbis --strip-components=1
           echo "/usr/local/orbis/bin" >> $GITHUB_PATH
           echo "OO_PS4_TOOLCHAIN=/usr/local/orbis" >> $GITHUB_ENV
-          ls /usr/local/orbis/bin/linux
+
+      - name: Fix icon0
+        run: |
+          mkdir -p sce_sys
+          if [ ! -f sce_sys/icon0.png ]; then
+            python3 -c "from PIL import Image; Image.new('RGB',(512,512),(30,144,255)).save('sce_sys/icon0.png')"
+          fi
 
       - name: Build PKG
         run: |
