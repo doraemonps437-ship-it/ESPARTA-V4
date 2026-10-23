@@ -9,26 +9,27 @@ jobs:
       - name: Setup Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang lld libicu-dev wget unzip python3
-          python3 << 'PY'
-          import urllib.request, json, os, sys
-          api="https://api.github.com/repos/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/tags/v0.5.4"
-          data=json.load(urllib.request.urlopen(api))
-          urls=[a["browser_download_url"] for a in data["assets"]]
-          # busca ubuntu primero
-          url=next((u for u in urls if "ubuntu" in u.lower() and u.endswith(".zip")), None)
-          if not url:
-              url=next((u for u in urls if u.endswith(".zip")), None)
-          print(f"URL={url}")
-          if not url:
-              sys.exit(1)
-          urllib.request.urlretrieve(url, "/tmp/tc.zip")
-          PY
+          sudo apt-get install -y clang lld libicu-dev wget unzip
+          # prueba varios nombres, uno tiene que funcionar
+          for URL in \
+            "https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/openorbis-ps4-toolchain-0.5.4-ubuntu-22.04.zip" \
+            "https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/openorbis-ps4-toolchain-0.5.4.zip" \
+            "https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.3/openorbis-ps4-toolchain-0.5.3-ubuntu-22.04.zip" \
+            "https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.3/openorbis-ps4-toolchain-0.5.3.zip"
+          do
+            echo "Probando $URL"
+            if wget -q --show-progress "$URL" -O /tmp/tc.zip; then
+              echo "BAJADO!"
+              break
+            fi
+          done
+          ls -lh /tmp/tc.zip
           sudo unzip -q /tmp/tc.zip -d /opt
-          TC=$(find /opt -type d -name "OpenOrbis-PS4-Toolchain" | head -n1)
-          echo "Found $TC"
+          TC=$(find /opt -type d -name "*OpenOrbis*" | head -n1)
+          echo "Toolchain en $TC"
           echo "OO_PS4_TOOLCHAIN=$TC" >> $GITHUB_ENV
           echo "$TC/bin" >> $GITHUB_PATH
+          ls $TC/bin | head -n20
 
       - name: Build PKG
         run: |
