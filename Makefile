@@ -4,7 +4,7 @@
 # ============================================================================
 
 # ---- Package identity (fixed) ----
-TITLE       := ShadCube4
+TITLE       := Espartan
 VERSION     := 01.00
 TITLE_ID    := SHAD00004
 CONTENT_ID  := IV0000-SHAD00004_00-SHADCUBE40000000
