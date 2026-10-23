@@ -7,22 +7,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y make libicu-dev
+        run: sudo apt-get update && sudo apt-get install -y make libicu-dev
 
-      - name: Install OpenOrbis Toolchain
+      - name: Install Toolchain
         run: |
           git clone --depth=1 --branch v0.5.4 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain /tmp/orbis
-          sudo mkdir -p /opt/orbis
-          sudo cp -r /tmp/orbis/* /opt/orbis/
+          sudo mkdir -p /opt/orbis && sudo cp -r /tmp/orbis/* /opt/orbis/
           echo "OO_PS4_TOOLCHAIN=/opt/orbis" >> $GITHUB_ENV
-          ls /opt/orbis/bin/
 
       - name: Build
         run: |
           export OO_PS4_TOOLCHAIN=/opt/orbis
-          export PATH=$OO_PS4_TOOLCHAIN/bin:$PATH
+          export PATH=/opt/orbis/bin:$PATH
           make
 
       - name: Upload PKG
