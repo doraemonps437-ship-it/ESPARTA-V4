@@ -2,17 +2,12 @@ name: build
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: openorbis/toolchain:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: |
-          make || echo "fallo pero seguimos"
-          ls -la
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        if: always()
+      - run: make
+      - uses: actions/upload-artifact@v4
         with:
-          name: ESPARTA-V4
-          path: .
-          if-no-files-found: warn
+          name: PKG-PS4
+          path: "*.pkg"
