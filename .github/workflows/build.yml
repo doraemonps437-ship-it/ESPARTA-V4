@@ -9,14 +9,15 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 lld-18 libicu-dev
+          sudo apt-get install -y make libicu-dev
 
-      - name: Install OpenOrbis Toolchain v0.5.4
+      - name: Install OpenOrbis Toolchain
         run: |
           git clone --depth=1 --branch v0.5.4 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain /tmp/orbis
           sudo mkdir -p /opt/orbis
           sudo cp -r /tmp/orbis/* /opt/orbis/
           echo "OO_PS4_TOOLCHAIN=/opt/orbis" >> $GITHUB_ENV
+          ls /opt/orbis/bin/
 
       - name: Build
         run: |
