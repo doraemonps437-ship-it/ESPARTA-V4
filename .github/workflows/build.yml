@@ -2,21 +2,20 @@ name: build
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-18 lld-18 libicu-dev dotnet-sdk-8.0
-          sudo ln -sf /usr/bin/clang-18 /usr/bin/clang
-          sudo ln -sf /usr/bin/ld.lld-18 /usr/bin/ld.lld
+          sudo apt-get install -y clang-15 lld-15 libicu-dev dotnet-sdk-8.0 gcc-multilib g++-multilib libc6-dev-i386 build-essential
+          sudo ln -sf /usr/bin/clang-15 /usr/bin/clang
+          sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
           sudo rm -rf /opt/OpenOrbis-PS4-Toolchain
           sudo git clone https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /opt/OpenOrbis-PS4-Toolchain --depth 1 --branch v0.5.4
           echo "OO_PS4_TOOLCHAIN=/opt/OpenOrbis-PS4-Toolchain" >> $GITHUB_ENV
           echo "/opt/OpenOrbis-PS4-Toolchain/bin" >> $GITHUB_PATH
-          ls /opt/OpenOrbis-PS4-Toolchain/bin
           chmod +x /opt/OpenOrbis-PS4-Toolchain/bin/* || true
 
       - name: Build PKG
