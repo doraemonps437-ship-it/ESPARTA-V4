@@ -2,18 +2,28 @@ name: build
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/orbisdev/orbisdev:latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          export OO_PS4_TOOLCHAIN=/usr/local/orbis
-          make -j$(nproc)
-      - uses: actions/upload-artifact@v4
+
+      - name: Install SDK
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget clang lld
+          wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.2/openorbis-ps4-toolchain-0.5.2-linux.tar.gz -O /tmp/oo.tar.gz
+          sudo mkdir -p /opt/pacbrew
+          sudo tar -xzf /tmp/oo.tar.gz -C /opt/pacbrew --strip-components=1
+          echo "OO_PS4_TOOLCHAIN=/opt/pacbrew" >> $GITHUB_ENV
+          echo "/opt/pacbrew/bin" >> $GITHUB_PATH
+
+      - name: Build PKG
+        run: |
+          export OO_PS4_TOOLCHAIN=/opt/pacbrew
+          export PATH=/opt/pacbrew/bin:/opt/pacbrew/ps4/bin:$PATH
+          make
+
+      - name: Upload PKG
+        uses: actions/upload-artifact@v4
         with:
           name: ESPARTA-V4-PKG-PS4
-          path: |
-            *.pkg
-            **/*.pkg
-            bin/*.pkg
+          path: "*.pkg"
