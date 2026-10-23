@@ -14,10 +14,10 @@ jobs:
           sudo ln -sf /usr/bin/ld.lld-18 /usr/bin/ld.lld
           sudo rm -rf /opt/OpenOrbis-PS4-Toolchain
           sudo git clone https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /opt/OpenOrbis-PS4-Toolchain --depth 1 --branch v0.5.4
-          cd /opt/OpenOrbis-PS4-Toolchain
-          sudo make -j$(nproc)
           echo "OO_PS4_TOOLCHAIN=/opt/OpenOrbis-PS4-Toolchain" >> $GITHUB_ENV
           echo "/opt/OpenOrbis-PS4-Toolchain/bin" >> $GITHUB_PATH
+          ls /opt/OpenOrbis-PS4-Toolchain/bin
+          chmod +x /opt/OpenOrbis-PS4-Toolchain/bin/* || true
 
       - name: Build PKG
         run: |
