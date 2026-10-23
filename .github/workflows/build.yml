@@ -8,18 +8,18 @@ jobs:
       - name: Setup Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang lld libicu-dev unzip wget
-          wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/openorbis-ps4-toolchain-0.5.4-ubuntu-22.04.zip -O toolchain.zip
-          unzip -q toolchain.zip -d /tmp/tc
-          TC=$(find /tmp/tc -type d -name "OpenOrbis-PS4-Toolchain" | head -n 1)
+          sudo apt-get install -y clang lld libicu-dev
+          wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/openorbis-ps4-toolchain-0.5.4-ubuntu-22.04.zip -O tc.zip || wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/openorbis-ps4-toolchain-0.5.4.zip -O tc.zip
+          sudo unzip -q tc.zip -d /opt
+          TC=$(find /opt -type d -name "OpenOrbis-PS4-Toolchain" | head -n1)
           echo "OO_PS4_TOOLCHAIN=$TC" >> $GITHUB_ENV
-          echo "TOOLCHAIN_PATH=$TC" >> $GITHUB_ENV
+          echo "$TC/bin" >> $GITHUB_PATH
       - name: Build PKG
         run: |
           export OO_PS4_TOOLCHAIN=$OO_PS4_TOOLCHAIN
           export PATH=$OO_PS4_TOOLCHAIN/bin:$PATH
-          cp $OO_PS4_TOOLCHAIN/lib/x86_64-unknown-freebsd12.0/*.sprx sce_sys/about/ 2>/dev/null || true
-          cp $OO_PS4_TOOLCHAIN/lib/*.sprx sce_sys/about/ 2>/dev/null || true
+          mkdir -p sce_sys/about
+          find $OO_PS4_TOOLCHAIN -name "*.sprx" -exec cp {} sce_sys/about/ \; 2>/dev/null || true
           make
       - uses: actions/upload-artifact@v4
         with:
