@@ -1,0 +1,17 @@
+name: build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kravickas/orbisdev:0.71.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          export OO_PS4_TOOLCHAIN=/opt/orbis
+          export PATH=/opt/orbis/bin:$PATH
+          make
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ESPARTA-V4-PKG
+          path: "*.pkg"
