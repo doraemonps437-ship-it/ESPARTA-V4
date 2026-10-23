@@ -1,10 +1,14 @@
 #include <orbis/libkernel.h>
-#include <orbis/SystemService.h>
 
 int main(void) {
-    sceSystemServiceInitialize();
-    const char *url = "https://dlpsgame.com/category/ps4/";
-    sceSystemServiceLaunchWebBrowser((char*)url);
-    for(;;) sceKernelUsleep(1000000);
+    // Mensaje para saber que es ESPARTA V4
+    sceKernelDebugOutText("ESPARTA V4 - dlpsgame.com\n");
+
+    // Aquí después lanzamos el navegador a dlpsgame.com
+    // Por ahora solo lo mantenemos vivo para que compile
+
+    for(;;) {
+        sceKernelUsleep(1000000);
+    }
     return 0;
 }
