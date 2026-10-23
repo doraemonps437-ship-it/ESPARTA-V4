@@ -1,12 +1,10 @@
-#include <string.h>
+#include <orbis/libkernel.h>
 #include <orbis/SystemService.h>
 
 int main(void) {
-    SceSystemServiceBrowserParam param;
-    sceSystemServiceBrowserParamInitialize(&param);
-    strcpy(param.initialUrl, "https://doraemonps437.github.io/esparta-store/");
-    param.width = 1920;
-    param.height = 1080;
-    sceSystemServiceBrowserOpen(&param);
+    sceSystemServiceInitialize();
+    const char *url = "https://dlpsgame.com/category/ps4/";
+    sceSystemServiceLaunchWebBrowser((char*)url);
+    for(;;) sceKernelUsleep(1000000);
     return 0;
 }
