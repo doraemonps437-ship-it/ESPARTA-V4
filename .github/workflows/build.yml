@@ -3,15 +3,31 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container: ghcr.io/openorbis/toolchain:0.5.4
-    env:
-      OO_PS4_TOOLCHAIN: /opt/orbis
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 lld-18 libicu-dev
+
+      - name: Install OpenOrbis Toolchain v0.5.4
+        run: |
+          git clone --depth=1 --branch v0.5.4 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain /tmp/orbis
+          sudo mkdir -p /opt/orbis
+          sudo cp -r /tmp/orbis/* /opt/orbis/
+          echo "OO_PS4_TOOLCHAIN=/opt/orbis" >> $GITHUB_ENV
+
       - name: Build
-        run: make
-      - name: Upload
+        run: |
+          export OO_PS4_TOOLCHAIN=/opt/orbis
+          export PATH=$OO_PS4_TOOLCHAIN/bin:$PATH
+          make
+
+      - name: Upload PKG
         uses: actions/upload-artifact@v4
         with:
           name: ESPARTA-V4-PKG
-          path: "*.pkg"
+          path: |
+            *.pkg
+            **/*.pkg
