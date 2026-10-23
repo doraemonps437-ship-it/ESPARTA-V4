@@ -5,32 +5,25 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
       - name: Install SDK 0.5.4
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          NEEDRESTART_MODE: a
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libicu-dev python3 python3-pil
-          wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/OpenOrbis-PS4-Toolchain-0.5.4.tar.gz -O /tmp/toolchain.tar.gz
+          sudo apt-get update -y
+          sudo NEEDRESTART_MODE=a apt-get install -y libicu-dev
+          wget -q https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.4/OpenOrbis-PS4-Toolchain-0.5.4.tar.gz -O /tmp/t.tar.gz
           sudo mkdir -p /usr/local/orbis
-          sudo tar xzf /tmp/toolchain.tar.gz -C /usr/local/orbis --strip-components=1
+          sudo tar xzf /tmp/t.tar.gz -C /usr/local/orbis --strip-components=1
           echo "/usr/local/orbis/bin" >> $GITHUB_PATH
           echo "OO_PS4_TOOLCHAIN=/usr/local/orbis" >> $GITHUB_ENV
-
-      - name: Fix icon0
-        run: |
-          mkdir -p sce_sys
-          if [ ! -f sce_sys/icon0.png ]; then
-            python3 -c "from PIL import Image; Image.new('RGB',(512,512),(30,144,255)).save('sce_sys/icon0.png')"
-          fi
-
       - name: Build PKG
         run: |
           export OO_PS4_TOOLCHAIN=/usr/local/orbis
           export PATH=/usr/local/orbis/bin:$PATH
           make
-
       - name: Upload PKG
         uses: actions/upload-artifact@v4
         with:
-          name: Espartan-PKG
+          name: ESPARTA-V4-PKG
           path: "*.pkg"
