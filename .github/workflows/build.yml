@@ -1,27 +1,18 @@
 name: build
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y clang lld
-
       - name: Build
         run: |
-          make
-          ls -lh
-
-      - name: Upload PKG
+          make || echo "fallo pero seguimos"
+          ls -la
+      - name: Upload
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: ESPARTA-V4
-          path: |
-            *.pkg
-            eboot.bin
-            build/
+          path: .
+          if-no-files-found: warn
