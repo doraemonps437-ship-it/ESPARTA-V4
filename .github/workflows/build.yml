@@ -6,18 +6,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install SDK 0.5.2
+      - name: Install SDK 0.5.4
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang lld llvm libicu-dev
-          git clone --depth 1 --branch v0.5.2 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /tmp/oo
+          sudo apt-get install -y lsb-release wget software-properties-common gnupg libicu-dev
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 18
+          git clone --depth 1 --branch v0.5.4 https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /tmp/oo
           cd /tmp/oo
           sudo make -j$(nproc) install
           echo "/usr/local/orbis/bin" >> $GITHUB_PATH
           echo "OO_PS4_TOOLCHAIN=/usr/local/orbis" >> $GITHUB_ENV
 
       - name: Build PKG
-        run: make
+        run: |
+          export OO_PS4_TOOLCHAIN=/usr/local/orbis
+          export PATH=/usr/local/orbis/bin:$PATH
+          make
 
       - name: Upload PKG
         uses: actions/upload-artifact@v4
