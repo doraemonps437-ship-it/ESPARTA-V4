@@ -4,10 +4,10 @@
 # ============================================================================
 
 # ---- Package identity (fixed) ----
-TITLE       := Espartan
+TITLE       := ESPARTA V4
 VERSION     := 01.00
-TITLE_ID    := SHAD00004
-CONTENT_ID  := IV0000-SHAD00004_00-SHADCUBE40000000
+TITLE_ID    := ESPA00004
+CONTENT_ID  := EP9000-ESPA00004_00-ESPAV400000000
 
 EXTRAFLAGS  :=
 
@@ -46,12 +46,7 @@ LIBMODULES  := $(wildcard sce_module/*)
 CFLAGS      := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) \
                -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -Ishaders
 CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/include/c++/v1
-# Model parsing (multi-GB text OBJ) is CPU-bound: optimise just the loaders.
-# The renderer (main.o) keeps its hardware-verified default codegen.
-# -fno-builtin: no implicit memset/memcpy calls from loop idioms (no libc dependency).
 $(INTDIR)/loaders.o: CFLAGS += -O2 -fno-strict-aliasing -fno-builtin
-# The atmosphere model (src/atmosphere.c): table lookups at run time; -fno-math-errno lets
-# __builtin_sqrt become sqrtsd (it must not call libm - the object has no undefined symbols).
 $(INTDIR)/atmosphere.o: CFLAGS += -O2 -fno-builtin -fno-math-errno
 LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x --eh-frame-hdr \
                -L$(TOOLCHAIN)/lib $(CORE_LIBS) --as-needed $(EXTRA_LIBS) --no-as-needed \
@@ -88,8 +83,6 @@ sce_sys/param.sfo: Makefile
 	$(PKG)/PkgTool.Core sfo_setentry $@ TITLE_ID --type Utf8 --maxsize 12 --value '$(TITLE_ID)'
 	$(PKG)/PkgTool.Core sfo_setentry $@ VERSION --type Utf8 --maxsize 8 --value '$(VERSION)'
 
-# ---- Packaged assets: every file under assets/ ships at /app0/assets/ (tools/build_assets.py).
-#      tools/make_gp4.py declares every directory (create-gp4's fixed tree breaks nested ones). ----
 ASSETS      := $(shell find assets -type f 2>/dev/null | LC_ALL=C sort)
 
 pkg.gp4: eboot.bin sce_sys/param.sfo sce_sys/icon0.png sce_sys/about/right.sprx $(LIBMODULES) $(ASSETS)
