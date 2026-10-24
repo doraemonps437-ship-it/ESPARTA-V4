@@ -13,7 +13,6 @@ jobs:
           sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
           sudo rm -rf /opt/OpenOrbis-PS4-Toolchain /opt/openorbis /opt/toolchain*
           ASSET_URL=$(curl -s https://api.github.com/repos/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/tags/v0.5.4 | jq -r '.assets[].browser_download_url' | grep llvm-18 | head -n1)
-          echo "Descargando $ASSET_URL"
           curl -L "$ASSET_URL" -o /tmp/toolchain.tar.gz
           sudo mkdir -p /opt
           sudo tar -xzf /tmp/toolchain.tar.gz -C /opt
@@ -27,10 +26,13 @@ jobs:
           export PATH=$OO_PS4_TOOLCHAIN/bin:$PATH
           sed -i 's/sceKernelDebugOutText("/sceKernelDebugOutText(0, "/g' src/main.c || true
           mkdir -p sce_sys/about
-          # Copia todos los sprx del toolchain y asegura right.sprx
           find $OO_PS4_TOOLCHAIN -name "*.sprx" -exec cp {} sce_sys/about/ \; 2>/dev/null || true
           touch sce_sys/about/right.sprx
-          ls -lh sce_sys/about/
+          echo "Arreglando ContentID a 36 chars..."
+          # Reemplaza cualquier ContentID corto por uno válido de 36
+          sed -i 's/EP9000-ESPA00004_00-ESPAV400000000/EP9000-ESPA00004_00-0000000000000000/g' pkg.gp4 || true
+          sed -i 's/ESPAV400000000/0000000000000000/g' pkg.gp4 || true
+          cat pkg.gp4 | grep -i content
           make
           ls -lh *.pkg
       - uses: actions/upload-artifact@v4
