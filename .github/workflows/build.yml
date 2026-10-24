@@ -15,8 +15,9 @@ jobs:
           sudo git clone https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /opt/OpenOrbis-PS4-Toolchain --depth 1 --branch v0.5.4
           sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/include/sys
           sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/usr/include/sys
+          # types.h COMPLETO - ya con pid_t y clockid_t
+          printf '#pragma once\n#include <stdint.h>\n#include <sys/time.h>\ntypedef long ssize_t;\ntypedef unsigned long size_t;\ntypedef long off_t;\ntypedef unsigned int mode_t;\ntypedef int pid_t;\ntypedef int clockid_t;\ntypedef unsigned int uid_t;\ntypedef unsigned int gid_t;\ntypedef long time_t;\ntypedef unsigned int useconds_t;\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h > /dev/null
           printf '#pragma once\n#ifndef _SYS_TIME_H_\n#define _SYS_TIME_H_\nstruct timeval { long tv_sec; long tv_usec; };\nstruct timespec { long tv_sec; long tv_nsec; };\n#endif\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/time.h > /dev/null
-          printf '#pragma once\n#include <stdint.h>\ntypedef long ssize_t;\ntypedef unsigned long size_t;\ntypedef long off_t;\ntypedef unsigned int mode_t;\n#include <sys/time.h>\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h > /dev/null
           printf '#pragma once\n#include <sys/types.h>\nstruct stat { unsigned int st_mode; };\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/stat.h > /dev/null
           echo '#pragma once' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/cdefs.h > /dev/null
           sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/* /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/
@@ -29,6 +30,8 @@ jobs:
         run: |
           export OO_PS4_TOOLCHAIN=/opt/OpenOrbis-PS4-Toolchain
           export PATH=$OO_PS4_TOOLCHAIN/bin:$PATH
+          # Fix de tu main.c - le falta el 0,
+          sed -i 's/sceKernelDebugOutText("/sceKernelDebugOutText(0, "/g' src/main.c
           mkdir -p sce_sys/about
           find $OO_PS4_TOOLCHAIN -name "*.sprx" -exec cp {} sce_sys/about/ \; 2>/dev/null || true
           make
