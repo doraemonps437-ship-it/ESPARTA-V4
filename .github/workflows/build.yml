@@ -13,15 +13,20 @@ jobs:
           sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
           sudo rm -rf /opt/OpenOrbis-PS4-Toolchain
           sudo git clone https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /opt/OpenOrbis-PS4-Toolchain --depth 1 --branch v0.5.4
-          sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/usr/include/sys
           sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/include/sys
+          sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/usr/include/sys
           echo '#pragma once
           #include <stdint.h>
           typedef long ssize_t;
-          typedef unsigned long size_t;' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h
+          typedef unsigned long size_t;
+          struct timeval { long tv_sec; long tv_usec; };' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h
+          echo '#pragma once
+          struct timeval { long tv_sec; long tv_usec; };
+          struct timespec { long tv_sec; long tv_nsec; };' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/time.h
           sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/types.h
-          sudo sed -i '/sys\/types.h/d' /opt/OpenOrbis-PS4-Toolchain/include/orbis/libkernel.h
-          ls -l /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h
+          sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/time.h /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/time.h
+          sudo find /opt/OpenOrbis-PS4-Toolchain/include/orbis -type f -exec sed -i '/#include <sys\//d' {} \;
+          sudo find /opt/OpenOrbis-PS4-Toolchain/include -name "*.h" -exec sed -i '/#include <sys\/time.h>/d' {} \; || true
           echo "OO_PS4_TOOLCHAIN=/opt/OpenOrbis-PS4-Toolchain" >> $GITHUB_ENV
           echo "/opt/OpenOrbis-PS4-Toolchain/bin" >> $GITHUB_PATH
       - name: Build PKG
