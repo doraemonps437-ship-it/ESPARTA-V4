@@ -13,15 +13,21 @@ jobs:
           sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
           sudo rm -rf /opt/OpenOrbis-PS4-Toolchain
           sudo git clone https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git /opt/OpenOrbis-PS4-Toolchain --depth 1 --branch v0.5.4
-          sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/include/sys
+          # --- Fix sys/ que faltan ---
           sudo mkdir -p /opt/OpenOrbis-PS4-Toolchain/usr/include/sys
-          # Crea todos los sys/*.h que pida el toolchain como vacíos
-          sudo bash -c 'for f in stat.h cdefs.h _types.h _stdint.h _time.h param.h mount.h uio.h; do echo "#pragma once" > /opt/OpenOrbis-PS4-Toolchain/include/sys/$f; done'
-          # Ahora los importantes con contenido real y sin redefinición
           printf '#pragma once\n#ifndef _SYS_TIME_H_\n#define _SYS_TIME_H_\nstruct timeval { long tv_sec; long tv_usec; };\nstruct timespec { long tv_sec; long tv_nsec; };\n#endif\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/time.h
-          printf '#pragma once\n#include <stdint.h>\ntypedef long ssize_t;\ntypedef unsigned long size_t;\ntypedef long off_t;\ntypedef unsigned int mode_t;\nstruct stat { unsigned int st_mode; };\n#include <sys/time.h>\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h
+          printf '#pragma once\n#include <stdint.h>\ntypedef long ssize_t;\ntypedef unsigned long size_t;\ntypedef long off_t;\ntypedef unsigned int mode_t;\n#include <sys/time.h>\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h
           printf '#pragma once\n#include <sys/types.h>\nstruct stat { unsigned int st_mode; };\n' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/stat.h
-          sudo cp -r /opt/OpenOrbis-PS4-Toolchain/include/sys/* /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/
+          echo '#pragma once' | sudo tee /opt/OpenOrbis-PS4-Toolchain/include/sys/cdefs.h
+          sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/time.h /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/time.h
+          sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/types.h /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/types.h
+          sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/stat.h /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/stat.h
+          sudo cp /opt/OpenOrbis-PS4-Toolchain/include/sys/cdefs.h /opt/OpenOrbis-PS4-Toolchain/usr/include/sys/cdefs.h
+          # --- Fix pthread.h roto ---
+          printf '#pragma once\n#include <sys/types.h>\ntypedef struct { char _d[64]; } pthread_t;\ntypedef struct { char _d[64]; } pthread_attr_t;\ntypedef struct { char _d[64]; } pthread_mutex_t;\ntypedef struct { char _d[64]; } pthread_mutexattr_t;\ntypedef struct { char _d[64]; } pthread_cond_t;\ntypedef struct { char _d[64]; } pthread_condattr_t;\ntypedef struct { char _d[64]; } pthread_rwlock_t;\ntypedef struct { char _d[64]; } pthread_rwlockattr_t;\ntypedef struct { char _d[64]; } pthread_barrier_t;\ntypedef struct { char _d[64]; } pthread_barrierattr_t;\ntypedef struct { char _d[64]; } pthread_spinlock_t;\ntypedef struct { char _d[64]; } pthread_key_t;\ntypedef struct { char _d[64]; } pthread_once_t;\ntypedef OrbisPthread OrbisPthreadT;\n' | sudo tee /tmp/fix.h
+          # Inyecta los tipos antes del contenido original de pthread.h
+          sudo bash -c 'cat /tmp/fix.h > /tmp/new.h; cat /opt/OpenOrbis-PS4-Toolchain/include/orbis/_types/pthread.h >> /tmp/new.h; cp /tmp/new.h /opt/OpenOrbis-PS4-Toolchain/include/orbis/_types/pthread.h'
+          # Parche kernel.h para que vea time.h
           sudo sed -i '1i#include <sys/types.h>' /opt/OpenOrbis-PS4-Toolchain/include/orbis/_types/kernel.h
           echo "OO_PS4_TOOLCHAIN=/opt/OpenOrbis-PS4-Toolchain" >> $GITHUB_ENV
           echo "/opt/OpenOrbis-PS4-Toolchain/bin" >> $GITHUB_PATH
