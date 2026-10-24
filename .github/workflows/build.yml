@@ -5,13 +5,12 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Toolchain v0.5.4 (con libs)
+      - name: Setup Toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-15 lld-15 libicu-dev dotnet-sdk-8.0 jq
           sudo ln -sf /usr/bin/clang-15 /usr/bin/clang
           sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
-          sudo rm -rf /opt/OpenOrbis-PS4-Toolchain /opt/openorbis /opt/toolchain*
           ASSET_URL=$(curl -s https://api.github.com/repos/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/tags/v0.5.4 | jq -r '.assets[].browser_download_url' | grep llvm-18 | head -n1)
           curl -L "$ASSET_URL" -o /tmp/toolchain.tar.gz
           sudo mkdir -p /opt
@@ -24,15 +23,12 @@ jobs:
         run: |
           export OO_PS4_TOOLCHAIN=/opt/OpenOrbis-PS4-Toolchain
           export PATH=$OO_PS4_TOOLCHAIN/bin:$PATH
-          sed -i 's/sceKernelDebugOutText("/sceKernelDebugOutText(0, "/g' src/main.c || true
           mkdir -p sce_sys/about
           find $OO_PS4_TOOLCHAIN -name "*.sprx" -exec cp {} sce_sys/about/ \; 2>/dev/null || true
           touch sce_sys/about/right.sprx
-          echo "Arreglando ContentID a 36 chars..."
-          # Reemplaza cualquier ContentID corto por uno válido de 36
-          sed -i 's/EP9000-ESPA00004_00-ESPAV400000000/EP9000-ESPA00004_00-0000000000000000/g' pkg.gp4 || true
-          sed -i 's/ESPAV400000000/0000000000000000/g' pkg.gp4 || true
-          cat pkg.gp4 | grep -i content
+          sed -i 's/sceKernelDebugOutText("/sceKernelDebugOutText(0, "/g' src/main.c || true
+          sed -i 's/EP9000-ESPA00004_00-ESPAV400000000/EP9000-ESPA00004_00-0000000000000000/g' Makefile || true
+          sed -i 's/ESPAV400000000/0000000000000000/g' Makefile || true
           make
           ls -lh *.pkg
       - uses: actions/upload-artifact@v4
